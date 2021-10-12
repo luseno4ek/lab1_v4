@@ -172,6 +172,7 @@ namespace lab1_var4
         {
             get
             {
+                if (Count == 0) return 0;
                 float XDist = (XGrid - 1) * GridStep.X;
                 float YDist = (YGrid - 1) * GridStep.Y;
                 return (float)Math.Sqrt(XDist * XDist + YDist * YDist);
@@ -288,6 +289,10 @@ namespace lab1_var4
         {
             Console.WriteLine("/*_____________________1______________________*/\n");
 
+            V4DataArray ArrayEmpty = new V4DataArray("ArrayEmpty", new DateTime(2021, 7, 10, 8, 30, 52),
+                2, 0, new Vector2(1, 2), FieldVectorCalculations.Random);
+            Console.WriteLine(ArrayEmpty.ToLongString("F2") + "\n");
+
             V4DataArray Array1 = new V4DataArray("Array1", new DateTime(2021, 10, 10, 8, 30, 52),
                 3, 2, new Vector2(1, 1), FieldVectorCalculations.Summation);
             Console.WriteLine(Array1.ToLongString("F2") + "\n");
@@ -295,11 +300,18 @@ namespace lab1_var4
             V4DataList ListFromArray1 = (V4DataList)Array1;
             Console.WriteLine(ListFromArray1.ToLongString("F2") + "\n");
 
+            V4DataList ListEmpty = new V4DataList("ListEmpty", new DateTime(2021, 9, 10, 8, 30, 52));
+            Console.WriteLine(ListEmpty.ToLongString("F2") + "\n");
+
             Console.WriteLine("Count for Array1 = " + Array1.Count.ToString());
-            Console.WriteLine("Count for ListFromArray1 = " + ListFromArray1.Count.ToString() + "\n");
+            Console.WriteLine("Count for ArrayEmpty = " + ArrayEmpty.Count.ToString());
+            Console.WriteLine("Count for ListFromArray1 = " + ListFromArray1.Count.ToString());
+            Console.WriteLine("Count for ListEmpty = " + ListEmpty.Count.ToString() + "\n");
 
             Console.WriteLine("MaxFromOrigin for Array1 = " + Array1.MaxFromOrigin.ToString());
-            Console.WriteLine("MaxFromOrigin for ListFromArray1 = " + ListFromArray1.MaxFromOrigin.ToString() + "\n\n");
+            Console.WriteLine("MaxFromOrigin for ArrayEmpty = " + ArrayEmpty.MaxFromOrigin.ToString());
+            Console.WriteLine("MaxFromOrigin for ListFromArray1 = " + ListFromArray1.MaxFromOrigin.ToString());
+            Console.WriteLine("MaxFromOrigin for ListEmpty = " + ListEmpty.MaxFromOrigin.ToString() + "\n\n");
 
 
 
@@ -311,11 +323,14 @@ namespace lab1_var4
             V4DataList List2 = new V4DataList("List2", new DateTime(2021, 9, 10, 8, 30, 52));
             List2.AddDefaults(5, FieldVectorCalculations.Multiply);
 
+            
+
             V4MainCollection Collection1 = new V4MainCollection();
 
              
             Collection1.Add(Array1);
             Collection1.Add(Array2);
+            Collection1.Add(ArrayEmpty);
             Collection1.Add(ListFromArray1); // this list won't be added to the collection, because it has the same ID as Array1
             Collection1.Add(List2);
 
