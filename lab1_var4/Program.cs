@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace lab1_var4
 {
@@ -59,6 +60,19 @@ namespace lab1_var4
         public override string ToString()
         {
             return base.ToString() + string.Format(" ID = {0}, MeasureTime = {1}", ID, MeasureTime);
+        }
+
+        public interface IEnumerable<DataItem> : IEnumerable
+        {
+            new IEnumerator<DataItem> GetEnumerator();
+        }
+
+        public interface IEnumerator<DataItem> : IEnumerator
+        {
+            new DataItem Current
+            {
+                get;
+            }
         }
     }
 
@@ -131,6 +145,62 @@ namespace lab1_var4
                 finalString += item.ToLongString(format);
             }
             return finalString;
+        }
+
+        public V4ListEnum GetEnumerator()
+        {
+            return new V4ListEnum(DataList);
+        }
+    }
+
+    public class V4ListEnum : IEnumerator<DataItem>
+    {
+        public List<DataItem> DataList;
+
+        private int position = -1;
+
+        public V4ListEnum(List<DataItem> _DataList)
+        {
+            DataList = _DataList;
+        }
+
+        public DataItem Current
+        {
+            get
+            {
+                try
+                {
+                    return DataList[position];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                return Current;
+            }
+        }
+
+        public bool MoveNext()
+        {
+            position++;
+            return (position < DataList.Count);
+        }
+
+        public void Reset()
+        {
+            position = -1;
+        }
+
+        void IDisposable.Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -290,7 +360,7 @@ namespace lab1_var4
             Console.WriteLine("/*_____________________1______________________*/\n");
 
             V4DataArray ArrayEmpty = new V4DataArray("ArrayEmpty", new DateTime(2021, 7, 10, 8, 30, 52),
-                2, 0, new Vector2(1, 2), FieldVectorCalculations.Random);
+                0, 0, new Vector2(1, 2), FieldVectorCalculations.Random);
             Console.WriteLine(ArrayEmpty.ToLongString("F2") + "\n");
 
             V4DataArray Array1 = new V4DataArray("Array1", new DateTime(2021, 10, 10, 8, 30, 52),
@@ -313,6 +383,9 @@ namespace lab1_var4
             Console.WriteLine("MaxFromOrigin for ListFromArray1 = " + ListFromArray1.MaxFromOrigin.ToString());
             Console.WriteLine("MaxFromOrigin for ListEmpty = " + ListEmpty.MaxFromOrigin.ToString() + "\n\n");
 
+
+            foreach (DataItem data in ListFromArray1.DataList)
+                Console.WriteLine(data.ToString());
 
 
             Console.WriteLine("/*_____________________2______________________*/\n");
