@@ -198,10 +198,7 @@ namespace lab1_var4
             position = -1;
         }
 
-        void IDisposable.Dispose()
-        {
-            throw new NotImplementedException();
-        }
+        void IDisposable.Dispose() { }
     }
 
     /*____________________V4DataArray___________________*/
@@ -287,6 +284,75 @@ namespace lab1_var4
                 }
             }
             return newList;
+        }
+
+        public V4ArrayEnum GetEnumerator()
+        {
+            return new V4ArrayEnum(FieldVector);
+        }
+    }
+
+    public class V4ArrayEnum : IEnumerator<DataItem>
+    {
+        public Vector2 position = new Vector2(-1, -1);
+        public Vector2[,] FieldVector;
+
+        public V4ArrayEnum(Vector2[,] _FieldVector)
+        {
+            FieldVector = _FieldVector;
+        }
+
+        public DataItem Current
+        {
+            get
+            {
+                try
+                {
+                    int x = (int)position.X;
+                    int y = (int)position.Y;
+                    return new DataItem(position, FieldVector[x, y]);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                return Current;
+            }
+        }
+
+        public void Dispose() { }
+
+        public bool MoveNext()
+        {
+            if(position.Y < (FieldVector.GetLength(1) - 1))
+            {
+                position.Y++;
+                if(position.X == -1)
+                {
+                    position.X++;
+                }
+                return true;
+            }
+            else if (position.X < (FieldVector.GetLength(0) - 1))
+            {
+                position.X++;
+                position.Y = 0;
+                return true;
+            }
+            return false;
+        }
+
+        public void Reset()
+        {
+            position.X = -1;
+            position.Y = -1;
         }
     }
 
@@ -383,10 +449,17 @@ namespace lab1_var4
             Console.WriteLine("MaxFromOrigin for ListFromArray1 = " + ListFromArray1.MaxFromOrigin.ToString());
             Console.WriteLine("MaxFromOrigin for ListEmpty = " + ListEmpty.MaxFromOrigin.ToString() + "\n\n");
 
-
-            foreach (DataItem data in ListFromArray1.DataList)
+            Console.WriteLine("DataItems in ListFromArray1:");
+            foreach (DataItem data in ListFromArray1)
+            {
                 Console.WriteLine(data.ToString());
+            }
 
+            Console.WriteLine("\nDataItems in Array1:");
+            foreach (DataItem data in Array1)
+            {
+                Console.WriteLine(data.ToString());
+            }
 
             Console.WriteLine("/*_____________________2______________________*/\n");
 
