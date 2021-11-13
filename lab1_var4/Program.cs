@@ -664,7 +664,7 @@ namespace lab1_var4
             V4DataArray Array1 = new V4DataArray("Array1", new DateTime(2021, 11, 13),
                 3, 2, new Vector2(1, 1), FieldVectorCalculations.Summation);
             Console.WriteLine(Array1.ToLongString("F2") + "\n");
-            if (Array1.SaveAsText("/Users/luseno4ek/Documents/Универ/3курс/c#/array1.txt"))
+            if (Array1.SaveAsText("array1.txt"))
             {
                 Console.WriteLine("CONSOLE: Array1 is saved in file 'array1.txt' as text\n");
             }
@@ -674,7 +674,7 @@ namespace lab1_var4
             }
 
             V4DataArray Array1FromFile = new V4DataArray("Array1FromFile", new DateTime(2021, 11, 13));
-            if (Array1FromFile.LoadAsText("/Users/luseno4ek/Documents/Универ/3курс/c#/array1.txt"))
+            if (Array1FromFile.LoadAsText("array1.txt"))
             {
                 Console.WriteLine("CONSOLE: Array1FromFile is loaded from file 'array1.txt'\n");
             }
@@ -690,7 +690,7 @@ namespace lab1_var4
             V4DataList List1 = new V4DataList("List1", new DateTime(2021, 11, 13));
             List1.AddDefaults(5, FieldVectorCalculations.Multiply);
             Console.WriteLine(List1.ToLongString("F2") + "\n");
-            if(List1.SaveBinary("/Users/luseno4ek/Documents/Универ/3курс/c#/list1.txt"))
+            if(List1.SaveBinary("list1.txt"))
             {
                 Console.WriteLine("CONSOLE: List1 is saved in file 'list1.txt' as binary\n");
             }
@@ -700,7 +700,7 @@ namespace lab1_var4
             }
 
             V4DataList List1FromFile = new V4DataList("List1FromFile", new DateTime(2021, 11, 13));       
-            if(List1FromFile.LoadBinary("/Users/luseno4ek/Documents/Универ/3курс/c#/list1.txt"))
+            if(List1FromFile.LoadBinary("list1.txt"))
             {
                 Console.WriteLine("CONSOLE: List1FromFile is loaded from file 'list1.txt'\n");
             }
