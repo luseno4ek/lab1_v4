@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.IO;
+using System.Globalization;
 
 namespace lab1_var4
 {
@@ -42,7 +43,6 @@ namespace lab1_var4
     public delegate Vector2 Fv2Vector2(Vector2 v2);
 
     /*______________IEnumerable<DataItem>_______________*/
-
 
     public interface IEnumerable<DataItem> : IEnumerable
     {
@@ -181,11 +181,20 @@ namespace lab1_var4
             }
             using (BinaryWriter output_file = new BinaryWriter(File.OpenWrite(filename)))
             {
-                foreach(DataItem item in DataList)
+                try
+                {
+                    output_file.Write(string.Format("ID ={0}", ID));
+                    output_file.Write(string.Format("Measure_time = {0}", MeasureTime));
+                }
+                catch (IOException)
+                { return false; }
+                foreach (DataItem item in DataList)
                 {
                     string PointStr = "Point = " + item.Point.X.ToString() + ", " + item.Point.Y.ToString() + " ;";
                     string FieldStr = "Field vector = " + item.Field.X.ToString() + ", " + item.Field.Y.ToString();
-                    output_file.Write(PointStr + FieldStr);
+                    try { output_file.Write(PointStr + FieldStr); }
+                    catch (IOException)
+                    { return false; }
                 }
             }
             return true;
@@ -195,18 +204,28 @@ namespace lab1_var4
         {
             try
             {
-                if (!File.Exists(filename))
-                {
-                    return false;
-                }
+                if (!File.Exists(filename)) return false;
             }
             catch (ArgumentException)
             {
                 return false;
             }
-            using (BinaryReader input_file = new BinaryReader(File.OpenRead(filename)))
+            try
             {
-                string line = input_file.ReadString();
+                using BinaryReader input_file = new BinaryReader(File.OpenRead(filename));
+                string line;
+                try { line = input_file.ReadString().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
+                ID = line;
+                try { line = input_file.ReadString().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
+                _ = DateTime.TryParse(line, out DateTime date);
+                MeasureTime = date;
+                try { line = input_file.ReadString(); }
+                catch (EndOfStreamException)
+                { return false; }
                 while (true)
                 {
                     string pointline = line.Split(';')[0].Split('=')[1];
@@ -221,6 +240,11 @@ namespace lab1_var4
                     { return true; }
                 }
             }
+            catch(IOException)
+            {
+                return false;
+            }
+           
         }
     }
 
@@ -382,15 +406,27 @@ namespace lab1_var4
             }
             using (StreamWriter output_file = new StreamWriter(filename))
             {
-                output_file.WriteLine(string.Format("XGrid = {0}", XGrid));
-                output_file.WriteLine(string.Format("YGrid = {0}", YGrid));
-                output_file.WriteLine(string.Format("GridStep = {0},{1}", GridStep.X, GridStep.Y));
+                try
+                {
+                    output_file.WriteLine(string.Format("ID ={0}", ID));
+                    output_file.WriteLine(string.Format("Measure_time = {0}", MeasureTime));
+                    output_file.WriteLine(string.Format("XGrid = {0}", XGrid));
+                    output_file.WriteLine(string.Format("YGrid = {0}", YGrid));
+                    output_file.WriteLine(string.Format("GridStep = {0},{1}", GridStep.X, GridStep.Y));
+                }
+                catch (IOException)
+                { return false; }
                 for (int i = 0; i < XGrid; i++)
                 {
                     for (int j = 0; j < YGrid; j++)
-                    { 
-                        output_file.WriteLine(string.Format("Point: ({0}, {1}); Field Vector = {2}, {3}",
-                            i * GridStep.X, j * GridStep.Y, FieldVector[i, j].X, FieldVector[i, j].Y));
+                    {
+                        try
+                        {
+                            output_file.WriteLine(string.Format("Point: ({0}, {1}); Field Vector = {2}, {3}",
+                                i * GridStep.X, j * GridStep.Y, FieldVector[i, j].X, FieldVector[i, j].Y));
+                        }
+                        catch (IOException)
+                        { return false; }
                     }
                 }
             }
@@ -413,13 +449,29 @@ namespace lab1_var4
 
             using (StreamReader input_file = File.OpenText(filename))
             {
-                string line = input_file.ReadLine().Split('=')[1];
-                _ = int.TryParse(line, out int number1);
+                string line;
+                try { line = input_file.ReadLine().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
+                ID = line;
+                try { line = input_file.ReadLine().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
+                _ = DateTime.TryParse(line, out DateTime date);
+                MeasureTime = date;
+                try { line = input_file.ReadLine().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
+                _ = int.TryParse(line, out  int number1);
                 XGrid = number1;
-                line = input_file.ReadLine().Split('=')[1];
+                try { line = input_file.ReadLine().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
                 _ = int.TryParse(line, out number1);
                 YGrid = number1;
-                line = input_file.ReadLine().Split('=')[1];
+                try { line = input_file.ReadLine().Split('=')[1]; }
+                catch (EndOfStreamException)
+                { return false; }
                 _ = int.TryParse(line.Split(',')[0], out number1);
                 _ = int.TryParse(line.Split(',')[1], out int number2);
                 GridStep = new Vector2(number1, number2);
@@ -428,7 +480,9 @@ namespace lab1_var4
                 {
                     for (int j = 0; j < YGrid; j++)
                     {
-                        line = input_file.ReadLine().Split(';')[1].Split('=')[1];
+                        try { line = input_file.ReadLine().Split(';')[1].Split('=')[1]; }
+                        catch (EndOfStreamException)
+                        { return false; }
                         _ = int.TryParse(line.Split(',')[0], out number1);
                         _ = int.TryParse(line.Split(',')[1], out number2);
                         FieldVector[i, j] = new Vector2(number1, number2);
@@ -572,14 +626,19 @@ namespace lab1_var4
             }
         }
 
-       public System.Collections.Generic.IEnumerable<Vector2> MeasurePoints
+       public System.Collections.Generic.IEnumerable<Vector2> IntersectMeasurePoints
         {
             get
             {
-                var Points = from data in DataList
-                                       from DataItem item in data
-                                       select item.Field;
-                return Points.Distinct();
+                var Points = from DataItem item in DataList[0]
+                             select item.Point;
+                var Intersection = from data in DataList
+                                   select Points = Points.Intersect(from DataItem item in data
+                                                                    select item.Point);
+                Intersection = Intersection.TakeLast(1);
+                return from data in Intersection
+                       from item in data
+                       select item; ;
             }
         }
     }
@@ -597,101 +656,139 @@ namespace lab1_var4
 
     class Program
     {
-        static void Main()
+        public static void SaveLoadObjects()
         {
-            Console.WriteLine("/*_____________________1______________________*/\n");
+            /* Array */
+            Console.WriteLine("___________Array___________\n");
 
-            V4DataArray ArrayEmpty = new V4DataArray("ArrayEmpty", new DateTime(2021, 7, 10, 8, 30, 52),
-                0, 0, new Vector2(1, 2), FieldVectorCalculations.Random);
-            Console.WriteLine(ArrayEmpty.ToLongString("F2") + "\n");
-
-            V4DataArray Array1 = new V4DataArray("Array1", new DateTime(2021, 10, 10, 8, 30, 52),
+            V4DataArray Array1 = new V4DataArray("Array1", new DateTime(2021, 11, 13),
                 3, 2, new Vector2(1, 1), FieldVectorCalculations.Summation);
             Console.WriteLine(Array1.ToLongString("F2") + "\n");
-
-            V4DataList ListFromArray1 = (V4DataList)Array1;
-            Console.WriteLine(ListFromArray1.ToLongString("F2") + "\n");
-
-            V4DataList ListEmpty = new V4DataList("ListEmpty", new DateTime(2021, 9, 10, 8, 30, 52));
-            Console.WriteLine(ListEmpty.ToLongString("F2") + "\n");
-
-            Console.WriteLine("Count for Array1 = " + Array1.Count.ToString());
-            Console.WriteLine("Count for ArrayEmpty = " + ArrayEmpty.Count.ToString());
-            Console.WriteLine("Count for ListFromArray1 = " + ListFromArray1.Count.ToString());
-            Console.WriteLine("Count for ListEmpty = " + ListEmpty.Count.ToString() + "\n");
-
-            Console.WriteLine("MaxFromOrigin for Array1 = " + Array1.MaxFromOrigin.ToString());
-            Console.WriteLine("MaxFromOrigin for ArrayEmpty = " + ArrayEmpty.MaxFromOrigin.ToString());
-            Console.WriteLine("MaxFromOrigin for ListFromArray1 = " + ListFromArray1.MaxFromOrigin.ToString());
-            Console.WriteLine("MaxFromOrigin for ListEmpty = " + ListEmpty.MaxFromOrigin.ToString() + "\n\n");
-
-            Console.WriteLine("DataItems in ListFromArray1:");
-            foreach (DataItem data in ListFromArray1)
+            if (Array1.SaveAsText("/Users/luseno4ek/Documents/Универ/3курс/c#/array1.txt"))
             {
-                Console.WriteLine(data.ToString());
+                Console.WriteLine("CONSOLE: Array1 is saved in file 'array1.txt' as text\n");
+            }
+            else
+            {
+                Console.WriteLine("CONSOLE: ****ERROR! Array1 is not saved!****\n");
             }
 
-            Console.WriteLine("\nDataItems in Array1:");
-            foreach (DataItem data in Array1)
+            V4DataArray Array1FromFile = new V4DataArray("Array1FromFile", new DateTime(2021, 11, 13));
+            if (Array1FromFile.LoadAsText("/Users/luseno4ek/Documents/Универ/3курс/c#/array1.txt"))
             {
-                Console.WriteLine(data.ToString());
+                Console.WriteLine("CONSOLE: Array1FromFile is loaded from file 'array1.txt'\n");
+            }
+            else
+            {
+                Console.WriteLine("CONSOLE: ****ERROR! Array1FromFile is not loaded!****\n");
+            }
+            Console.WriteLine(Array1FromFile.ToLongString("F2") + "\n");
+
+            /* List */
+            Console.WriteLine("\n___________List___________\n");
+
+            V4DataList List1 = new V4DataList("List1", new DateTime(2021, 11, 13));
+            List1.AddDefaults(5, FieldVectorCalculations.Multiply);
+            Console.WriteLine(List1.ToLongString("F2") + "\n");
+            if(List1.SaveBinary("/Users/luseno4ek/Documents/Универ/3курс/c#/list1.txt"))
+            {
+                Console.WriteLine("CONSOLE: List1 is saved in file 'list1.txt' as binary\n");
+            }
+            else
+            {
+                Console.WriteLine("CONSOLE: ****ERROR! List1 is not saved!****\n");
             }
 
-            _ = Array1.SaveAsText("/Users/luseno4ek/Documents/Универ/3курс/c#/file.txt");
-
-            V4DataArray ArrayFromFile = new V4DataArray("ArrayFromFile", new DateTime(2021, 11, 12, 8, 30, 52));
-            _ = ArrayFromFile.LoadAsText("/Users/luseno4ek/Documents/Универ/3курс/c#/file.txt");
-
-            _ = ListFromArray1.SaveBinary("/Users/luseno4ek/Documents/Универ/3курс/c#/file1.txt");
-            V4DataList ListFromBinary = new V4DataList("ListFromBinary", new DateTime(2021, 9, 10, 8, 30, 52));
-            _ = ListFromBinary.LoadBinary("/Users/luseno4ek/Documents/Универ/3курс/c#/file1.txt");
-
-            Console.WriteLine("/*_____________________2______________________*/\n");
-
-            V4DataArray Array2 = new V4DataArray("Array2", new DateTime(2021, 7, 10, 8, 30, 52),
-                2, 5, new Vector2(1, 2), FieldVectorCalculations.Random);
-
-            V4DataList List2 = new V4DataList("List2", new DateTime(2021, 9, 10, 8, 30, 52));
-            List2.AddDefaults(5, FieldVectorCalculations.Multiply);
-
-            
-
-            V4MainCollection Collection1 = new V4MainCollection();
-
-            
-            Collection1.Add(ListFromArray1); // this list won't be added to the collection, because it has the same ID as Array1
-            Collection1.Add(List2);
-            Collection1.Add(ArrayEmpty);
-            Collection1.Add(Array1);
-            Collection1.Add((V4DataList)Array2);
-            Collection1.Add(ArrayFromFile);
-            Collection1.Add(ListFromBinary);
-            Console.WriteLine(Collection1.ToLongString("F2"));
-
-
-            Console.WriteLine("\nNullFieldAmount = {0}", Collection1.ZeroFieldCount);
-
-            foreach(Vector2 item in Collection1.MeasurePoints)
+            V4DataList List1FromFile = new V4DataList("List1FromFile", new DateTime(2021, 11, 13));       
+            if(List1FromFile.LoadBinary("/Users/luseno4ek/Documents/Универ/3курс/c#/list1.txt"))
             {
-                Console.WriteLine("Point: ({0}, {1})", item.X, item.Y);
+                Console.WriteLine("CONSOLE: List1FromFile is loaded from file 'list1.txt'\n");
             }
-
-            Console.WriteLine("/*_____________________3______________________*/\n");
-
-            for (int i = 0; i < Collection1.Count; i++)
+            else
             {
-                Console.WriteLine("{3}) Count for {0} = {1},  MaxFromOrigin for {0} = {2}, Type = {4}\n",
-                    Collection1[i].ID, Collection1[i].Count, Collection1[i].MaxFromOrigin,i+1, Collection1[i].GetType());
+                Console.WriteLine("CONSOLE: ****ERROR! List1FromFile is not loaded!****\n");
             }
+            Console.WriteLine(List1FromFile.ToLongString("F2") + "\n");
+        }
 
-            foreach(IGrouping<DateTime, V4DataList> group in Collection1.GroupTime)
+        public static void UsageOfLINQ()
+        {
+            /* Create Collection */
+            V4MainCollection collection = new V4MainCollection();
+            V4DataArray Array1 = new V4DataArray("Array1", new DateTime(2021, 11, 13),
+                2, 2, new Vector2(1, 1), FieldVectorCalculations.Summation);
+            collection.Add(Array1);
+            V4DataArray ArrayEmpty = new V4DataArray("ArrayEmpty", new DateTime(2021, 11, 13),
+                0, 0, new Vector2(1, 1), FieldVectorCalculations.Summation);
+            collection.Add(ArrayEmpty);
+            V4DataList List1 = new V4DataList("List1", new DateTime(2021, 11, 13));
+            List1.AddDefaults(2, FieldVectorCalculations.Multiply);
+            collection.Add(List1);
+            V4DataList List2 = new V4DataList("List2", new DateTime(2010, 11, 14));
+            List2.AddDefaults(2, FieldVectorCalculations.Random);
+            collection.Add(List2);
+            V4DataList ListEmpty2 = new V4DataList("ListEmpty2", new DateTime(2010, 11, 14));
+            collection.Add(ListEmpty2);
+            V4DataList ListEmpty1 = new V4DataList("ListEmpty1", new DateTime(2021, 11, 13));
+            collection.Add(ListEmpty1);
+
+            Console.WriteLine("___________Collection___________\n");
+            Console.WriteLine(collection.ToLongString("F2") + "\n");
+
+            Console.WriteLine("___________ZeroFieldCount___________\n");
+            Console.WriteLine("The amount of points with (Field.X == 0 or Field.Y ==0):   {0}\n", collection.ZeroFieldCount);
+
+            Console.WriteLine("\n___________Lists from Collection Grouped By Datetime___________");
+            foreach(IGrouping<DateTime, V4DataList> group in collection.GroupTime)
             {
-                Console.WriteLine(group.Key);
-                foreach(V4DataList list in group)
+                Console.WriteLine("\n-----------Date of measure: " + group.Key + "\n");
+                foreach(V4DataList item in group)
                 {
-                    Console.WriteLine(list.ToString());
+                    Console.WriteLine(item.ToLongString("F2") + "\n");
                 }
             }
+
+            Console.WriteLine("\n___________Intersection of Measure Points from collection___________\n");
+            Console.WriteLine("-----Collection WITH empty lists and arrays:");
+            int i = 0;
+            Console.WriteLine("Intersection of measure points:");
+            foreach(Vector2 point in collection.IntersectMeasurePoints)
+            {
+                Console.WriteLine("{1}) Point = {0}", point, i++);
+            }
+            if (i == 0)
+            {
+                Console.WriteLine("*****The intersection is empty!*****\n");
+            }
+
+            Console.WriteLine("\n-----Collection WITHOUT empty lists and arrays:");
+            V4MainCollection collection1 = new V4MainCollection();
+            collection1.Add(Array1);
+            collection1.Add(List2);
+            collection1.Add(List1);
+            i = 0;
+            Console.WriteLine("Intersection of measure points:");
+            foreach (Vector2 point in collection1.IntersectMeasurePoints)
+            {
+                Console.WriteLine("{1}) Point = {0}", point, ++i);
+            }
+            if (i == 0)
+            {
+                Console.WriteLine("The intersection is empty!");
+            }
+        }
+
+        static void Main()
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+            CultureInfo.CurrentUICulture = new CultureInfo("en-US", false);
+
+            Console.WriteLine("--------------------------Saving and loading objects--------------------------\n");
+            SaveLoadObjects();
+
+            Console.WriteLine("--------------------------Usage of LINQ in Collection--------------------------\n");
+            UsageOfLINQ();
         }
     }
 }
