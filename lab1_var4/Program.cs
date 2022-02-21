@@ -652,6 +652,43 @@ namespace lab1_var4
         public static Vector2 Random(Vector2 v2) => new Vector2(new Random().Next(1,10), new Random().Next(1,10));
     }
 
+    /*_______________Lab3_______________*/
+
+    public struct VMTime
+    {
+        public int Arg_length { get; set; }
+        public float VML_HA_time_rel { get; set; }
+        public float WML_EP_time_rel { get; set; }
+    }
+
+    public struct VMAccuracy
+    {
+        public Vector2 Interval { get; set; }
+        public int Arg_length { get; set; }
+        public float VML_HA_acc_rel { get; set; }
+        public float WML_EP_acc_rel { get; set; }
+        public float VML_WML_max_rel { get; set; }
+        public Vector2 Max_diff_point { get; set; }
+    }
+
+    public class VMBenchmark
+    {
+        public List<VMTime> Time_res;
+
+        public List<VMAccuracy> Acc_res;
+
+        public void Fill_benchmark(int _arg_length, Vector2 _interval)
+        {
+            float[] args = new float[_arg_length];
+            args[0] = _interval.X;
+            float delta = (_interval.Y - _interval.X) / _arg_length;
+            for (int i = 1; i < args.Length; i++)
+            {
+                args[i] = args[i - 1] + delta;
+            }
+        }
+    }
+
     /*_____________________MainMethod______________________*/
 
     class Program
